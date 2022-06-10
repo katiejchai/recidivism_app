@@ -3,6 +3,7 @@
 # load packages
 library(shiny)
 library(shinyWidgets)
+library(shinythemes)
 library(tidyverse)
 library(knitr)
 library(plotly)
@@ -83,41 +84,22 @@ recidivismData <- jailData3 %>%
 ##### USER INTERFACE #########################################################
 
 ui <- fluidPage(
+  theme = shinytheme("united"),
   # css for user interface
   tags$head(
     tags$style(
       HTML("
-        body{
-          font-family: 'Trebuchet MS', sans-serif;
-        }
-        h4{
-          font-weight: bold;
-        }
         .shiny-notification{
           font-size: 20px;
           font-weight: bold;
         }
-        .shiny-text-output{
-          background-color: #e8e8e8;
-        }
-        #trait{
-          background-color: #f6f6f5;
-        }
-        #category{
-          background-color: #f6f6f5;
-        }
-        #sidebar{
-          background-color: #d7d8d2;
-        }
         #update{
-          background-color: #f6f6f5;
           font-weight: bold;
         }
         #caption{
           color: dark-grey;
           font-size: 12px;
           font-style: italic;
-          background-color: #d7d8d2;
         }
       ")
     )
@@ -196,7 +178,9 @@ ui <- fluidPage(
         "According to the description of the dataset provided by Professor Christopher Kinson of the Univerisity of Illinois at 
         Urbana-Champaign Statistics Department, 'The dataset contains 11082 observations and 40 columns for individuals who were 
         booked into jail in Champaign County Jail. The individuals are identifiable based on personal identity, and they are given 
-        unique jacket numbers. The demographics of the people, reasons for being booked, and crime codes are also given in the data.'",
+        unique jacket numbers. Some rows in the data appear more than once because of multiple crimes being assigned to one person. 
+        But there is also the possibility of there being recidivists. A recidivist is a person who goes to jail repeatedly (more 
+        than one datetime). The demographics of the people, reasons for being booked, and crime codes are also given in the data.'",
         tags$br(), tags$br(),
         
         tags$h4("Motivation of app"),
@@ -216,7 +200,13 @@ ui <- fluidPage(
         able to be determined based on the `crime` column of the same dataset. This was because the `super high level` column 
         (`crime_category` in the dataset shown in the 'Data' tab) was a broader category of the observations in the `crime` column, 
         so finding other observations with the same `crime` value allowed for NA values to be replaced with the corresponding 
-        `super high level` column."
+        `super high level` column.",
+        tags$br(), tags$br(),
+        
+        tags$h4("Code"),
+        "Code used to generate this Shiny app can be found on",
+        tags$a(href="http://www.github.com/katiejchai/recidivism_app", 
+               "Github.")
       )
     )
   )
@@ -408,16 +398,17 @@ server <- function(input, output, session) {
       summarise(n_recidivist = sum(n_recidivist, na.rm=TRUE),
                 n_nonrecidivist = sum(n_nonrecidivist, na.rm=TRUE)) %>%
       mutate(`# Recid : Non-Recid` = paste0(n_recidivist, " : ", n_nonrecidivist)) %>%
-      mutate(`Percent Recidivism` = paste0(" ", signif((n_recidivist/(n_recidivist+n_nonrecidivist)*100), 3),"%")) %>%
-      select(-c(n_recidivist, n_nonrecidivist)) %>%
+      mutate(`Percent Recidivism` = paste0(" ", signif(((n_recidivist/(n_recidivist+n_nonrecidivist))*100), 3),"%")) %>%
       rename(Category = subcategory)
     
     if (type() == "Counts"){
       plotData3 <- plotData2 %>%
+        arrange(desc(n_recidivist+n_nonrecidivist)) %>%
         select(c(Category, `# Recid : Non-Recid`))
     }
     if (type() == "Proportions"){
       plotData3 <- plotData2 %>%
+        arrange(desc(n_recidivist+n_nonrecidivist)) %>%
         select(c(Category, `Percent Recidivism`))
     }
     
