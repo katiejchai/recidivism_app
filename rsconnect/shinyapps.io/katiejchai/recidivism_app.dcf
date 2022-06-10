@@ -1,0 +1,14 @@
+name: recidivism_app
+title:
+username:
+account: katiejchai
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6364717
+bundleId: 5997637
+url: https://katiejchai.shinyapps.io/recidivism_app/
+when: 1654894369.4106
+lastSyncTime: 1654894369.41061
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md|www/app_image.png
